@@ -5,5 +5,5 @@ require 'sinatra'
 set :run, false
 set :env, :production
  
-require 'game.rb'
+require './game.rb'
 run Sinatra::Application
