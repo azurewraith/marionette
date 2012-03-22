@@ -13,3 +13,7 @@
 body {
   background-image: url("./images/NSBackground.png");
 }
+
+h2 {
+  color: #ffffff;
+}
