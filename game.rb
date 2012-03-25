@@ -16,8 +16,10 @@ end
 
 post '/events/new' do
   Juggernaut.publish("channel1", "new event: #{params[:will]} - #{params[:you]}")
+  "hi there!"
 end
 
 post '/query' do
   Juggernaut.publish("channel1", "query: #{params[:will]} - #{params[:you]}")
+  ""
 end

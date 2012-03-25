@@ -14,6 +14,10 @@ var jug = new Juggernaut({
   port: 8080
 });
 
+//jQuery.beforeSend(function(xhr){
+//  xhr.setRequestHeader("X-Session-ID", jug.sessionID);
+//});
+
 jug.on("connect", function(){ log("Connected") });
 jug.on("disconnect", function(){ log("Disconnected") });
 jug.on("reconnect", function(){ log("Reconnecting") });
@@ -29,8 +33,7 @@ jug.subscribe("channel1", function(data){
 $(document).ready(function() {
   $('#new_event').submit(function() {
     $.post($(this).attr('action'), $(this).serialize(), function(data){
-      $('#message').append("<p>" + data + "</p>");
-      $('#new_message').each(function(){this.reset();});
+      log("got stuff: " + data);
     }, "text");
     return false;
   });
