@@ -4,3 +4,23 @@
 
 %script{:src => "./js/jug.js"}
 %script{:src => "./js/game.js"}
+
+%h2 push event
+#message
+%form#new_event{:action => '/events/new'}
+  %p
+    %input.pink{:type => "text", :id => "will", :name => "will"}
+    %strong will
+    %input.pink{:type => "text", :id => "you", :name => "you"}
+    %strong you
+    %input{:type => "submit", :value => "post!"}
+
+%h2 query
+#message
+%form#new_query{:action => '/query'}
+  %p
+    %input.pink{:type => "text", :id => "will", :name => "will"}
+    %strong will
+    %input.pink{:type => "text", :id => "you", :name => "you"}
+    %strong you
+    %input{:type => "submit", :value => "post!"}
