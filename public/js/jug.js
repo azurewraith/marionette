@@ -13,7 +13,7 @@ function xinspect(o,i){
 
 function Query(json) 
 { 
-  //id, location, range, time, duration, type
+  //query_id, client_id, location, range, object_type
   switch (typeof arguments[0]) {
     case 'number' : Query.$args.apply(this, arguments); break;
     case 'string' : Query.$json.apply(this, arguments); break;
@@ -48,7 +48,7 @@ Query.$json = function(json)
 
 function GSEvent(json) 
 { 
-  //id, location, range, time, duration, type
+  //event_id, client_id, location, range, time, duration, object, meta
   switch (typeof arguments[0]) {
     case 'number' : GSEvent.$args.apply(this, arguments); break;
     case 'string' : GSEvent.$json.apply(this, arguments); break;
@@ -56,28 +56,30 @@ function GSEvent(json)
   } 
 }
 
-GSEvent.$args = function(event_id, location, range, time, duration, object, meta)
+GSEvent.$args = function(event_id, client_id, location, range, time, duration, object, meta)
 {
-  this.event_id = event_id;
-  this.location = location;
-  this.range    = range;
-  this.time     = time;
-  this.duration = duration;
-  this.object   = object;
-  this.meta     = meta;
+  this.event_id  = event_id;
+  this.client_id = client_id;
+  this.location  = location;
+  this.range     = range;
+  this.time      = time;
+  this.duration  = duration;
+  this.object    = object;
+  this.meta      = meta;
 }
 
 GSEvent.$json = function(json)
 {
   json = JSON.parse(json)
   if (json.data != null) {
-    this.event_id = json.data[0];
-    this.location = json.data[1];
-    this.range    = json.data[2];
-    this.time     = json.data[3];
-    this.duration = json.data[4];
-    this.object   = json.data[5];
-    this.meta     = json.data[6];
+    this.event_id  = json.data[0];
+    this.client_id = json.data[1];
+    this.location  = json.data[2];
+    this.range     = json.data[3];
+    this.time      = json.data[4];
+    this.duration  = json.data[5];
+    this.object    = json.data[6];
+    this.meta      = json.data[7];
   } else {
     $.extend(this, json);
   }
@@ -116,7 +118,7 @@ var processData = function(json) {
       rval = new GSEvent(json)
       break;
     case "WeaponFired":
-      rval = new Weapo(json)
+      rval = new WeaponFired(json)
       break;
     default:
       rval = obj;
