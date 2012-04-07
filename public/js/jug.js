@@ -163,7 +163,7 @@ jug.subscribe("zones", function(data){
 
 $(document).ready(function() {
   $('#new_event').submit(function() {
-    e = new GSEvent(1, [2,3], 4, 5, 6, 7, 8)
+    e = new GSEvent(1, 2, [3,4], 5, 6, 7, 8, 9)
     $.post($(this).attr('action'), e, function(data){
       log("got stuff: " + data);
     }, "text");
