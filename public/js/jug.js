@@ -9,6 +9,43 @@ function xinspect(o,i){
     return r.join(i+'\n');
 }
 
+//===========================Class Query=================================
+
+function Query(json) 
+{ 
+  //id, location, range, time, duration, type
+  switch (typeof arguments[0]) {
+    case 'number' : Query.$args.apply(this, arguments); break;
+    case 'string' : Query.$json.apply(this, arguments); break;
+    default: /*NOP*/
+  } 
+}
+
+Query.$args = function(query_id, client_id, location, range, object_type)
+{
+  this.query_id    = query_id;
+  this.client_id   = client_id;
+  this.location    = location;
+  this.range       = range;
+  this.object_type = object_type;
+}
+
+Query.$json = function(json)
+{
+  json = JSON.parse(json)
+  if (json.data != null) {
+    this.query_id    = json.data[0];
+    this.client_id   = json.data[1];
+    this.location    = json.data[2];
+    this.range       = json.data[3];
+    this.object_type = json.data[4];
+  } else {
+    $.extend(this, json);
+  }
+}
+
+//===========================Class GSEvent=================================
+
 function GSEvent(json) 
 { 
   //id, location, range, time, duration, type
@@ -19,29 +56,43 @@ function GSEvent(json)
   } 
 }
 
-GSEvent.$args = function(id, location, range, time, duration, type)
+GSEvent.$args = function(event_id, location, range, time, duration, object, meta)
 {
-  this.id = id;
+  this.event_id = event_id;
   this.location = location;
-  this.range = range;
-  this.time = time;
+  this.range    = range;
+  this.time     = time;
   this.duration = duration;
-  this.type = type;
+  this.object   = object;
+  this.meta     = meta;
 }
 
 GSEvent.$json = function(json)
 {
   json = JSON.parse(json)
   if (json.data != null) {
-    this.id = json.data[0];
+    this.event_id = json.data[0];
     this.location = json.data[1];
-    this.range = json.data[2];
-    this.time = json.data[3];
+    this.range    = json.data[2];
+    this.time     = json.data[3];
     this.duration = json.data[4];
-    this.type = json.data[5];
+    this.object   = json.data[5];
+    this.meta     = json.data[6];
   } else {
     $.extend(this, json);
   }
+}
+
+//===========================Class WeaponFired=================================
+/* 
+ * Simple sub-class of Event
+ */
+WeaponFired.prototype = new GSEvent;
+WeaponFired.prototype.constructor = WeaponFired;
+
+function WeaponFired()
+{
+  GSEvent.apply(this, arguments);
 }
 
 var logElement = jQuery("#log");
@@ -58,8 +109,14 @@ var processData = function(json) {
   rval = null;
   switch(obj.json_class)
   {
+    case "Query":
+      rval = new Query(json) 
+      break;
     case "Event":
       rval = new GSEvent(json)
+      break;
+    case "WeaponFired":
+      rval = new Weapo(json)
       break;
     default:
       rval = obj;
@@ -104,7 +161,7 @@ jug.subscribe("zones", function(data){
 
 $(document).ready(function() {
   $('#new_event').submit(function() {
-    e = new GSEvent(1, [2.3], 4, 5, 6, 7)
+    e = new GSEvent(1, [2,3], 4, 5, 6, 7, 8)
     $.post($(this).attr('action'), e, function(data){
       log("got stuff: " + data);
     }, "text");
@@ -114,7 +171,8 @@ $(document).ready(function() {
 
 $(document).ready(function() {
   $('#new_query').submit(function() {
-    $.post($(this).attr('action'), $(this).serialize(), function(data){
+    q = new Query(1, 2, [3,4], 5, 6)
+    $.post($(this).attr('action'), q, function(data){
       log("got stuff: " + data)
     }, "text");
     return false;

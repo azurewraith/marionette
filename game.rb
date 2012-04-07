@@ -18,40 +18,49 @@ get '/' do
   haml :loadin
 end
 
-event_count = 0;
+event_count = 1;
 
-# takes location, range, time, duration, type
 post '/events/new' do
-  location = params[:location].first.split('.').map{|i| i.to_i}
-  range    = params[:range].to_i
-  time     = params[:time]
-  duration = params[:duration].to_i
-  type     = params[:type]
+  client_id   = params[:client_id].to_i
+  location    = params[:location].map{|i| i.to_i}
+  range       = params[:range].to_i
+  time        = params[:time]
+  duration    = params[:duration].to_i
+  object      = params[:object]
+  meta        = params[:meta]
 
   # assign a loose numerical identifier to it
-  id = event_count
+  event_id = event_count
   event_count = event_count + 1
 
-  e = Event.new(id, location, range, time, duration, type)
+  e = Event.new(event_id, client_id, location, range, time, duration, object, meta)
 
   # determine what neighborhood location is in, publish to that neighborhood
   zone = "blah"
 
   Juggernaut.publish("global", e.to_json)
-  "Event #{id} was published to zone #{zone}"
+  "Event #{event_id} was published to zone #{zone}"
 end
 
-# takes location, range, so_and_so
+query_count = 1;
+
+# takes location, range, object_type
 post '/query' do
-  location  = params[:location]
-  range     = params[:range]
-  so_and_so = "strongbad and spaceships"
+  client_id   = params[:client_id].to_i
+  location    = params[:location].map{|i| i.to_i}
+  range       = params[:range].to_i
+  object_type = params[:object_type] 
+
+  query_id = query_count
+  query_count = query_count + 1
+
+  q = Query.new(query_id, client_id, location, range, object_type)
 
   # determine neighborhoods where range intersects from location
-  zones = []
+  zones = ["global"]
 
-  Juggernaut.publish("global", "query: #{params[:will]} - #{params[:you]}")
-  "We asked #{zones} about #{so_and_so}"
+  Juggernaut.publish(zones, q.to_json)
+  "We asked #{zones} about #{object_type}s"
 end
 
 # takes client_id, location
@@ -127,22 +136,21 @@ private
   end
 end
 
-class Event
-  attr_accessor :query_id, :location, :range, :time, :duration, :type
+class Query
+  attr_accessor :query_id, :client_id, :location, :range, :object_type
 
-  def initialize(id, location, range, time, duration, type)
-    @query_id = id
-    @location = location
-    @range    = range
-    @time     = time
-    @duration = duration
-    @type     = type
+  def initialize(query_id, client_id, location, range, object_type)
+    @query_id    = query_id 
+    @client_id   = client_id
+    @location    = location
+    @range       = range
+    @object_type = object_type
   end
 
   def to_json(*a)
     {
       'json_class'   => self.class.name,
-      'data'         => [ query_id, location, range, time, duration, type ]
+      'data'         => [ query_id, client_id, location, range, object_type ]
     }.to_json(*a)
   end
 
@@ -151,11 +159,34 @@ class Event
   end
 end
 
-# class FireEvent < Event
-#   def initialize(source_starship, destination_starship)
-#
-#   end
-# end
+class Event
+  attr_accessor :event_id, :client_id, :location, :range, :time, :duration, :object, :meta
+
+  def initialize(event_id, client_id, location, range, time, duration, object, meta)
+    @client_id = client_id
+    @event_id  = event_id
+    @location  = location
+    @range     = range
+    @time      = time
+    @duration  = duration
+    @object    = object
+    @meta      = meta
+  end
+
+  def to_json(*a)
+    {
+      'json_class'   => self.class.name,
+      'data'         => [event_id, client_id, location, range, time, duration, object, meta]
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    new(*o['data'])
+  end
+end
+
+class WeaponFired < Event
+end
 
 class Starship
   attr_accessor :captain, :location, :weapons, :armor, :sensors, :hit_points
@@ -180,11 +211,3 @@ class Starship
     new(*o['data'])
   end
 end
-
-
-# >> e = Event.new(1, [23, 34], 3, 'asdf', 30, "typhoon")
-# => #<Event:0x106e6b8e0 @query_id=1, @time="asdf", @range=3, @type="typhoon", @location=[23, 34], @duration=30>
-# >> json = e.to_json
-# => "{\"data\":[1,[23,34],3,\"asdf\",30,\"typhoon\"],\"json_class\":\"Event\"}"
-# >> e2 = JSON.parse(json)
-# => #<Event:0x106e5cf70 @query_id=1, @time="asdf", @range=3, @type="typhoon", @location=[23, 34], @duration=30>
