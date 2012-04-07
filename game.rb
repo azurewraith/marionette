@@ -1,18 +1,12 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require 'sqlite3'
 require 'sinatra/sequel'
 require 'sinatra'
 require 'haml'
 require 'juggernaut'
 require 'json'
 require 'json/add/core'
-
-set :database, 'sqlite://data.db'
-
-#require 'models/models.rb'
-#require 'models/migrations.rb'
   
 get '/' do
   haml :loadin
@@ -61,6 +55,12 @@ post '/query' do
 
   Juggernaut.publish(zones, q.to_json)
   "We asked #{zones} about #{object_type}s"
+end
+
+client_count = 0
+post '/client/new' do
+  client_count = client_count + 1
+  client_count.to_s
 end
 
 # takes client_id, location
