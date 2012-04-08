@@ -1,3 +1,5 @@
+//===========================General Usability=================================
+
 function xinspect(o,i){
     if(typeof i=='undefined')i='';
     if(i.length>50)return '[MAX ITERATIONS]';
@@ -8,6 +10,12 @@ function xinspect(o,i){
     }
     return r.join(i+'\n');
 }
+
+Object.prototype.getName = function() { 
+   var funcNameRegex = /function (.{1,})\(/;
+   var results = (funcNameRegex).exec((this).constructor.toString());
+   return (results && results.length > 1) ? results[1] : "";
+};
 
 //===========================Class ServerMessage=================================
 
@@ -182,21 +190,23 @@ jug.on("reconnect", function(){ log("Reconnecting") });
 log("Subscribing to global");
 
 jug.subscribe("global", function(data){
-  r = processData(data)
-  log("Got data: " + xinspect(r));
+  r = processData(data);
+  log("Got a " + r.getName());
 });
 
 log("Subscribing to zones");
 
 jug.subscribe("zones", function(data){
-  log("Got data: " + data);
+  r = processData(data);
+  log("Got a " + r.getName());
 });
 
 /* data handling */
 
 $(document).ready(function() {
   $('#new_event').submit(function() {
-    e = new GSEvent(1, 2, [3,4], 5, 6, 7, 8, 9)
+    //event_id, client_id, location, range, time, duration, object, meta
+    e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
     $.post($(this).attr('action'), e, function(data){
       // should only be ServerMessage, maybe some robustness is in order
       r = processData(data)
@@ -209,12 +219,13 @@ $(document).ready(function() {
 
 $(document).ready(function() {
   $('#new_query').submit(function() {
-    q = new Query(1, 2, [3,4], 5, 6)
+    //query_id, client_id, location, range, object_type
+    q = new Query(0, 2, [3,4], 5, 6)
     $.post($(this).attr('action'), q, function(data){
       // should only be ServerMessage, maybe some robustness is in order
       r = processData(data)
       log("Server Says: " + r.message);
-      e.event_id = r.callback_id;
+      q.query_id = r.callback_id;
     }, "text");
     return false;
   });
