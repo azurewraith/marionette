@@ -36,3 +36,53 @@ db.transaction(function (tx) {
     }
   });
 });
+
+log("Subscribing to global");
+
+jug.subscribe("global", function(data){
+  r = processData(data);
+  log("Got a " + r.getName());
+});
+
+log("Subscribing to zones");
+
+jug.subscribe("zones", function(data){
+  r = processData(data);
+  log("Got a " + r.getName());
+});
+
+/* data handling */
+
+$(document).ready(function() {
+  $('#new_event').submit(function() {
+    //event_id, client_id, location, range, time, duration, object, meta
+    e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
+    $.post($(this).attr('action'), e, function(data){
+      // should only be ServerMessage, maybe some robustness is in order
+      r = processData(data)
+      log("Server Says: " + r.message);
+      e.event_id = r.callback_id;
+
+      //store in an events_emitted table
+
+    }, "text");
+    return false;
+  });
+});
+
+$(document).ready(function() {
+  $('#new_query').submit(function() {
+    //query_id, client_id, location, range, object_type
+    q = new Query(0, 2, [3,4], 5, 6)
+    $.post($(this).attr('action'), q, function(data){
+      // should only be ServerMessage, maybe some robustness is in order
+      r = processData(data)
+      log("Server Says: " + r.message);
+      q.query_id = r.callback_id;
+
+      //store in a unanswered_queries table
+
+    }, "text");
+    return false;
+  });
+});
