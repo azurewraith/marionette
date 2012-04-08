@@ -1,28 +1,11 @@
 %h2 Greetings Traveler!
-.button{:id => "btnInit"} Find my location
+
 %textarea{:id => "log", :readonly => "readonly"}
+.button{:id => "btnInit"} Find my location
+.button{:id => "btnNewEvent"} New Event
+.button{:id => "btnNewQuery"} New Query
 
 %script{:src => "./js/utilities.js"}
 %script{:src => "./js/objects.js"}
 %script{:src => "./js/jug.js"}
 %script{:src => "./js/game.js"}
-
-%h2 push event
-#message
-%form#new_event{:action => '/events/new'}
-  %p
-    %input.pink{:type => "text", :id => "will", :name => "will"}
-    %strong will
-    %input.pink{:type => "text", :id => "you", :name => "you"}
-    %strong you
-    %input{:type => "submit", :value => "post!"}
-
-%h2 query
-#message
-%form#new_query{:action => '/query'}
-  %p
-    %input.pink{:type => "text", :id => "will", :name => "will"}
-    %strong will
-    %input.pink{:type => "text", :id => "you", :name => "you"}
-    %strong you
-    %input{:type => "submit", :value => "post!"}

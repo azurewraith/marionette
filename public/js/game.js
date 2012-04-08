@@ -3,21 +3,27 @@ function BlockMove(event) {
   event.preventDefault() ;
 }
 
-//***************************************
-// WebStorage test
-//***************************************
+// -----------------------------------------------
+// Get Client ID
+// -----------------------------------------------
+askForClientID = function() {
+  var clientID = 0;
+  jQuery.ajaxSetup({async:false});
+  $.post('/clients/new', [], function(data){
+    sessionStorage.setItem('client_id', data);
+    clientID = parseInt(data);
+  }, "text");
+  jQuery.ajaxSetup({async:true});
+  return clientID;
+}
 
-// Store value on browser for duration of the session
-sessionStorage.setItem('key_session', 'value_sess2');
- 
-// Retrieve value (gets deleted when browser is closed and re-opened)
-//alert(sessionStorage.getItem('key_session'));
-
-// Store value on the browser beyond the duration of the session
-localStorage.setItem('key_local', 'value_loc');
- 
-// Retrieve value (works even after closing and re-opening the browser)
-//alert(localStorage.getItem('key_local'));
+var client_id;
+if (sessionStorage.getItem('client_id') == null) {
+  client_id = askForClientID()
+} else {
+  client_id = parseInt(sessionStorage.getItem('client_id'));
+}
+jug.meta.client_id = client_id;
 
 //***************************************
 // Initialize WebSQL
@@ -45,6 +51,21 @@ jug.subscribe("global", function(data){
 log("Subscribing to zones");
 
 jug.subscribe("zones", function(data){
+  r = processData(data);
+  log("Got a " + r.getName());
+});
+
+log("Subscribing to clients/" + client_id);
+
+jug.subscribe("clients/" + client_id, function(data){
+  r = processData(data);
+  log("Got a " + r.getName());
+});
+
+var zone_id = 1;
+log("Subscribing to zones/" + zone_id);
+
+jug.subscribe("zones/" + zone_id, function(data){
   r = processData(data);
   log("Got a " + r.getName());
 });
@@ -92,20 +113,18 @@ sendNewQuery = function(q) {
     }, "text");
 }
 
-$(document).ready(function() {
-  $('#new_event').submit(function() {
+jQuery(window).ready(function(){  
+  jQuery("#btnNewEvent").click(function() {
     //event_id, client_id, location, range, time, duration, object, meta
     e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
     e = sendNewEvent(e);
-    return false;
   });
 });
 
-$(document).ready(function() {
-  $('#new_query').submit(function() {
+jQuery(window).ready(function(){  
+  jQuery("#btnNewQuery").click(function() {
     //query_id, client_id, location, range, object_type
     q = new Query(0, 2, [3,4], 5, 6)
     q = sendNewQuery(q);
-    return false;
   });
-});
+}); 

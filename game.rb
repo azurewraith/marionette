@@ -60,7 +60,7 @@ post '/query' do
 end
 
 client_count = 0
-post '/client/new' do
+post '/clients/new' do
   client_count = client_count + 1
   client_count.to_s
 end
