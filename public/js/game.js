@@ -20,12 +20,8 @@ localStorage.setItem('key_local', 'value_loc');
 //alert(localStorage.getItem('key_local'));
 
 //***************************************
-// WebSQL test
+// Initialize WebSQL
 //***************************************
-
-
-  // tx.executeSql('INSERT INTO foo (id, text) VALUES (1, "synergies")');
-  // tx.executeSql('INSERT INTO foo (id, text) VALUES (?, ?)', [2, 4]);
 
 var dbSize = 5 * 1024 * 1024; // 5MB
 var db = openDatabase('spatio', '1.0', 'spatio-temporal client data', dbSize);
@@ -37,7 +33,6 @@ db.onError = function(tx, e) {
 db.transaction(function (tx) {
   tx.executeSql('CREATE TABLE IF NOT EXISTS events_emitted (id INTEGER PRIMARY KEY ASC, client_id INTEGER, json TEXT)');
   tx.executeSql('CREATE TABLE IF NOT EXISTS unanswered_queries (id INTEGER PRIMARY KEY ASC, client_id INTEGER, json TEXT)');
-  //tx.executeSql('INSERT INTO events_emitted (id, client_id, text) VALUES (1, 1, "synergies")');
 });
 
 log("Subscribing to global");
@@ -67,30 +62,22 @@ db.transaction(function (tx) {
 
 /* data handling */
 
-$(document).ready(function() {
-  $('#new_event').submit(function() {
-    //event_id, client_id, location, range, time, duration, object, meta
-    e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
-    $.post($(this).attr('action'), e, function(data){
-      // should only be ServerMessage, maybe some robustness is in order
-      r = processData(data)
-      log("Server Says: " + r.message);
-      e.event_id = r.callback_id;
-      //store in an events_emitted table
-      db.transaction(function (tx) {
-        tx.executeSql('INSERT INTO events_emitted (id, client_id, json) VALUES (?, ?, ?)', [e.event_id, 1, JSON.stringify(e)]);
-      });
+sendNewEvent = function(e) {
+  $.post('/events/new', e, function(data){
+    // should only be ServerMessage, maybe some robustness is in order
+    r = processData(data)
+    log("Server Says: " + r.message);
+    e.event_id = r.callback_id;
+    //store in an events_emitted table
+    db.transaction(function (tx) {
+      tx.executeSql('INSERT INTO events_emitted (id, client_id, json) VALUES (?, ?, ?)', [e.event_id, 1, JSON.stringify(e)]);
+    });
+  }, "text");
+  return e;
+}
 
-    }, "text");
-    return false;
-  });
-});
-
-$(document).ready(function() {
-  $('#new_query').submit(function() {
-    //query_id, client_id, location, range, object_type
-    q = new Query(0, 2, [3,4], 5, 6)
-    $.post($(this).attr('action'), q, function(data){
+sendNewQuery = function(q) {
+  $.post('/query', q, function(data){
       // should only be ServerMessage, maybe some robustness is in order
       r = processData(data)
       log("Server Says: " + r.message);
@@ -103,6 +90,22 @@ $(document).ready(function() {
 
       //TBD: some sort of JS callback mechanism
     }, "text");
+}
+
+$(document).ready(function() {
+  $('#new_event').submit(function() {
+    //event_id, client_id, location, range, time, duration, object, meta
+    e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
+    e = sendNewEvent(e);
+    return false;
+  });
+});
+
+$(document).ready(function() {
+  $('#new_query').submit(function() {
+    //query_id, client_id, location, range, object_type
+    q = new Query(0, 2, [3,4], 5, 6)
+    q = sendNewQuery(q);
     return false;
   });
 });
