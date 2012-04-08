@@ -33,7 +33,8 @@ post '/events/new' do
   zone = "blah"
 
   Juggernaut.publish("global", e.to_json)
-  "Event #{event_id} was published to zone #{zone}"
+  m = ServerMessage.new(event_id, "Event #{event_id} was published to zone #{zone}")
+  m.to_json
 end
 
 query_count = 1;
@@ -54,7 +55,8 @@ post '/query' do
   zones = ["global"]
 
   Juggernaut.publish(zones, q.to_json)
-  "We asked #{zones} about #{object_type}s"
+  m = ServerMessage.new(query_id, "We asked #{zones} about #{object_type}s")
+  m.to_json
 end
 
 client_count = 0
@@ -136,6 +138,27 @@ private
   end
 end
 
+class ServerMessage
+  attr_accessor :callback_id, :message, :error
+
+  def initialize(callback_id, message="", error="")
+    @callback_id = callback_id
+    @message     = message
+    @error       = error
+  end
+
+  def to_json(*a)
+    {
+      'json_class'   => self.class.name,
+      'data'         => [callback_id, message, error]
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    new(*o['data'])
+  end
+end
+
 class Query
   attr_accessor :query_id, :client_id, :location, :range, :object_type
 
@@ -150,7 +173,7 @@ class Query
   def to_json(*a)
     {
       'json_class'   => self.class.name,
-      'data'         => [ query_id, client_id, location, range, object_type ]
+      'data'         => [query_id, client_id, location, range, object_type ]
     }.to_json(*a)
   end
 
@@ -203,7 +226,7 @@ class Starship
   def to_json(*a)
     {
       'json_class'   => self.class.name,
-      'data'         => [ captain, location, weapons, armor, sensors, hit_points]
+      'data'         => [captain, location, weapons, armor, sensors, hit_points]
     }.to_json(*a)
   end
 

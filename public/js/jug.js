@@ -9,6 +9,37 @@ function xinspect(o,i){
     return r.join(i+'\n');
 }
 
+//===========================Class ServerMessage=================================
+
+function ServerMessage(json) 
+{ 
+  //callback_id, message, error
+  switch (typeof arguments[0]) {
+    case 'number' : ServerMessage.$args.apply(this, arguments); break;
+    case 'string' : ServerMessage.$json.apply(this, arguments); break;
+    default: /*NOP*/
+  } 
+}
+
+ServerMessage.$args = function(callback_id, message, error)
+{
+  this.callback_id = callback_id;
+  this.message     = message;
+  this.error       = error;
+}
+
+ServerMessage.$json = function(json)
+{
+  json = JSON.parse(json)
+  if (json.data != null) {
+    this.callback_id = json.data[0];
+    this.message     = json.data[1];
+    this.error       = json.data[2];
+  } else {
+    $.extend(this, json);
+  }
+}
+
 //===========================Class Query=================================
 
 function Query(json) 
@@ -111,6 +142,9 @@ var processData = function(json) {
   rval = null;
   switch(obj.json_class)
   {
+    case "ServerMessage":
+      rval = new ServerMessage(json) 
+      break;
     case "Query":
       rval = new Query(json) 
       break;
@@ -149,7 +183,6 @@ log("Subscribing to global");
 
 jug.subscribe("global", function(data){
   r = processData(data)
-  log("Got json: " + data);
   log("Got data: " + xinspect(r));
 });
 
@@ -165,7 +198,10 @@ $(document).ready(function() {
   $('#new_event').submit(function() {
     e = new GSEvent(1, 2, [3,4], 5, 6, 7, 8, 9)
     $.post($(this).attr('action'), e, function(data){
-      log("got stuff: " + data);
+      // should only be ServerMessage, maybe some robustness is in order
+      r = processData(data)
+      log("Server Says: " + r.message);
+      e.event_id = r.callback_id;
     }, "text");
     return false;
   });
@@ -175,7 +211,10 @@ $(document).ready(function() {
   $('#new_query').submit(function() {
     q = new Query(1, 2, [3,4], 5, 6)
     $.post($(this).attr('action'), q, function(data){
-      log("got stuff: " + data)
+      // should only be ServerMessage, maybe some robustness is in order
+      r = processData(data)
+      log("Server Says: " + r.message);
+      e.event_id = r.callback_id;
     }, "text");
     return false;
   });
