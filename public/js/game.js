@@ -8,7 +8,7 @@ function BlockMove(event) {
 //***************************************
 
 // Store value on browser for duration of the session
-sessionStorage.setItem('key_session', 'value_sess');
+sessionStorage.setItem('key_session', 'value_sess2');
  
 // Retrieve value (gets deleted when browser is closed and re-opened)
 //alert(sessionStorage.getItem('key_session'));
@@ -23,18 +23,21 @@ localStorage.setItem('key_local', 'value_loc');
 // WebSQL test
 //***************************************
 
-var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
-db.transaction(function (tx) {
-  tx.executeSql('CREATE TABLE foo (id unique, text)');
-  tx.executeSql('INSERT INTO foo (id, text) VALUES (1, "synergies")');
-  tx.executeSql('INSERT INTO foo (id, text) VALUES (?, ?)', [2, 4]);
 
-  tx.executeSql('SELECT * FROM foo', [], function (tx, results) {
-    var len = results.rows.length, i;
-    for (i = 0; i < len; i++) {
-      //alert(results.rows.item(i).text);
-    }
-  });
+  // tx.executeSql('INSERT INTO foo (id, text) VALUES (1, "synergies")');
+  // tx.executeSql('INSERT INTO foo (id, text) VALUES (?, ?)', [2, 4]);
+
+var dbSize = 5 * 1024 * 1024; // 5MB
+var db = openDatabase('spatio', '1.0', 'spatio-temporal client data', dbSize);
+
+db.onError = function(tx, e) {
+  alert("There has been an error: " + e.message);
+}
+
+db.transaction(function (tx) {
+  tx.executeSql('CREATE TABLE IF NOT EXISTS events_emitted (id INTEGER PRIMARY KEY ASC, client_id INTEGER, json TEXT)');
+  tx.executeSql('CREATE TABLE IF NOT EXISTS unanswered_queries (id INTEGER PRIMARY KEY ASC, client_id INTEGER, json TEXT)');
+  //tx.executeSql('INSERT INTO events_emitted (id, client_id, text) VALUES (1, 1, "synergies")');
 });
 
 log("Subscribing to global");
@@ -51,6 +54,17 @@ jug.subscribe("zones", function(data){
   log("Got a " + r.getName());
 });
 
+// test query
+db.transaction(function (tx) {
+  id = 2
+  tx.executeSql('SELECT * FROM unanswered_queries WHERE id=?', [id], function (tx, results) {
+    var len = results.rows.length, i;
+    for (i = 0; i < len; i++) {
+      //log(results.rows.item(i).json);
+    }
+  }, db.onError);
+});
+
 /* data handling */
 
 $(document).ready(function() {
@@ -62,8 +76,10 @@ $(document).ready(function() {
       r = processData(data)
       log("Server Says: " + r.message);
       e.event_id = r.callback_id;
-
       //store in an events_emitted table
+      db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO events_emitted (id, client_id, json) VALUES (?, ?, ?)', [e.event_id, 1, JSON.stringify(e)]);
+      });
 
     }, "text");
     return false;
@@ -81,7 +97,11 @@ $(document).ready(function() {
       q.query_id = r.callback_id;
 
       //store in a unanswered_queries table
+      db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO unanswered_queries (id, client_id, json) VALUES (?, ?, ?)', [q.query_id, 1, JSON.stringify(q)]);
+      });
 
+      //TBD: some sort of JS callback mechanism
     }, "text");
     return false;
   });
