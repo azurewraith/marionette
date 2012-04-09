@@ -91,7 +91,7 @@ sendNewEvent = function(e) {
     e.event_id = r.callback_id;
     //store in an events_emitted table
     db.transaction(function (tx) {
-      tx.executeSql('INSERT INTO events_emitted (id, client_id, json) VALUES (?, ?, ?)', [e.event_id, 1, JSON.stringify(e)]);
+      tx.executeSql('INSERT INTO events_emitted (id, client_id, json) VALUES (?, ?, ?)', [e.event_id, client_id, JSON.stringify(e)]);
     });
   }, "text");
   return e;
@@ -106,7 +106,7 @@ sendNewQuery = function(q) {
 
       //store in a unanswered_queries table
       db.transaction(function (tx) {
-        tx.executeSql('INSERT INTO unanswered_queries (id, client_id, json) VALUES (?, ?, ?)', [q.query_id, 1, JSON.stringify(q)]);
+        tx.executeSql('INSERT INTO unanswered_queries (id, client_id, json) VALUES (?, ?, ?)', [q.query_id, client_id, JSON.stringify(q)]);
       });
 
       //TBD: some sort of JS callback mechanism
