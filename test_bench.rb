@@ -20,13 +20,22 @@ def open_new_window(driver, url)
   driver.switch_to.window(driver.window_handles.last)
 end
 
+def coin_flip
+  [true,false].shuffle.shift
+end
+
+client_id = 1;
 browsers = []
 browser_count.times do |i|
+  query_str = "/?x=#{rand(100)}&y=#{rand(100)}&client_id=#{client_id}"
   browsers[i] = Watir::Browser.new :chrome
-  browsers[i].goto(url)
+  browsers[i].goto(url + query_str)
+  client_id = client_id + 1
 
   tabs.times do |j|
-    open_new_window(browsers[i].driver, url)
+    query_str = "/?x=#{rand(100)}&y=#{rand(100)}&client_id=#{client_id}"
+    open_new_window(browsers[i].driver, url + query_str)
+    client_id = client_id + 1
   end
 end
 
@@ -42,7 +51,8 @@ browser_count.times do |k|
         20.times do |j|
           mutex[k].synchronize do
             browsers[k].windows[rand(6)].use do
-              browsers[k].div(:id,"btnNewQuery").click
+              browsers[k].div(:id,"btnNewQuery").click if coin_flip
+              browsers[k].div(:id,"btnNewEvent").click if coin_flip
             end
           end
         end

@@ -18,16 +18,13 @@ askForClientID = function() {
 }
 
 var client_id;
-if (sessionStorage.getItem('client_id') == null) {
+if (getParameterByName("client_id") != null) {
+  client_id = parseInt(getParameterByName("client_id"));
+}
+else if (sessionStorage.getItem('client_id') == null) {
   client_id = askForClientID()
 } else {
   client_id = parseInt(sessionStorage.getItem('client_id'));
-
-  //session is shared cross tab, so increment the counter and save if GET param is present
-  if (getParameterByName("incr_cid") != null) {
-    client_id = client_id + 1;
-    sessionStorage.setItem('client_id', client_id);
-  }
 }
 jug.meta.client_id = client_id;
 
@@ -128,7 +125,7 @@ sendNewQuery = function(q) {
 jQuery(window).ready(function(){  
   jQuery("#btnNewEvent").click(function() {
     //event_id, client_id, location, range, time, duration, object, meta
-    e = new GSEvent(0, 2, [3,4], 5, 6, 7, 8, 9)
+    e = new GSEvent(0, client_id, [myLocation.x, myLocation.y], 5, Math.round(+new Date()/1000), 60, "WeaponFired", {source_ss: 2, destination_ss: 2});
     e = sendNewEvent(e);
   });
 });
@@ -136,7 +133,7 @@ jQuery(window).ready(function(){
 jQuery(window).ready(function(){  
   jQuery("#btnNewQuery").click(function() {
     //query_id, client_id, location, range, object_type
-    q = new Query(0, 2, [3,4], 5, "Starship")
+    q = new Query(0, client_id, [myLocation.x, myLocation.y], 5, "Starship");
     q = sendNewQuery(q);
   });
 }); 

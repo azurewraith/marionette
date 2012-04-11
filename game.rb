@@ -30,9 +30,9 @@ post '/events/new' do
   e = Event.new(event_id, client_id, location, range, time, duration, object, meta)
 
   # determine what neighborhood location is in, publish to that neighborhood
-  zone = "blah"
+  zone = "global"
 
-  Juggernaut.publish("global", e.to_json)
+  Juggernaut.publish(zone, e.to_json)
   m = ServerMessage.new(event_id, "Event #{event_id} was published to zone #{zone}")
   m.to_json
 end
