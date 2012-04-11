@@ -4,13 +4,14 @@ require 'watir-webdriver'
 require 'pry'
 require 'thread'
 
-mutex = Mutex.new
+browser_count = 3
+tabs          = 5
 
-# t = []
-# 5.times do |i|
-#   t[i] = b.window.new
-#   b[i].goto 'http://localhost:4567'
-# end
+mutex = []
+browser_count.times do |i|
+  mutex[i] = Mutex.new
+end
+
 url = "http://localhost:4567"
 
 def open_new_window(driver, url)
@@ -19,23 +20,35 @@ def open_new_window(driver, url)
   driver.switch_to.window(driver.window_handles.last)
 end
 
-b = Watir::Browser.new :chrome
-b.goto(url)
+browsers = []
+browser_count.times do |i|
+  browsers[i] = Watir::Browser.new :chrome
+  browsers[i].goto(url)
 
-5.times do |i|
-  open_new_window(b.driver, url)
+  tabs.times do |j|
+    open_new_window(browsers[i].driver, url)
+  end
 end
 
-threads = []
-80.times do |i|
-  sleep rand(10)/10.0
-  threads[i] = Thread.new {
-    20.times do |j|
-      mutex.synchronize do
-        b.windows[rand(6)].use do
-          b.div(:id,"btnNewQuery").click
+outer_threads = []
+
+browser_count.times do |k|
+  outer_threads[k] = Thread.new {
+    threads = []
+    # number of logged entries will be roughly 8-10x
+    80.times do |i|
+      sleep rand(10)/10.0
+      threads[i] = Thread.new {
+        20.times do |j|
+          mutex[k].synchronize do
+            browsers[k].windows[rand(6)].use do
+              browsers[k].div(:id,"btnNewQuery").click
+            end
+          end
         end
-      end
+      }
     end
   }
 end
+
+outer_threads.each.map{|t| t.join}
