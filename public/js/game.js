@@ -22,8 +22,20 @@ if (sessionStorage.getItem('client_id') == null) {
   client_id = askForClientID()
 } else {
   client_id = parseInt(sessionStorage.getItem('client_id'));
+
+  //session is shared cross tab, so increment the counter and save if GET param is present
+  if (getParameterByName("incr_cid") != null) {
+    client_id = client_id + 1;
+    sessionStorage.setItem('client_id', client_id);
+  }
 }
 jug.meta.client_id = client_id;
+
+myLocation = new Object();
+myLocation.x = parseInt(getParameterByName("x"));
+myLocation.y = parseInt(getParameterByName("y"));
+
+log("My location: [" + myLocation.x + "," + myLocation.y + "]");
 
 //***************************************
 // Initialize WebSQL
@@ -124,7 +136,7 @@ jQuery(window).ready(function(){
 jQuery(window).ready(function(){  
   jQuery("#btnNewQuery").click(function() {
     //query_id, client_id, location, range, object_type
-    q = new Query(0, 2, [3,4], 5, 6)
+    q = new Query(0, 2, [3,4], 5, "Starship")
     q = sendNewQuery(q);
   });
 }); 

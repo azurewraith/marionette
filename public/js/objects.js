@@ -116,3 +116,10 @@ function WeaponFired()
 {
   GSEvent.apply(this, arguments);
 }
+
+//===========================Class Location=================================
+function CurLocation(x,y)
+{
+  this.x = x;
+  this.y = y;
+}

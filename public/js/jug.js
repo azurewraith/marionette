@@ -43,7 +43,6 @@ jQuery.ajaxSetup( {
   }
 })
 
-//location = {lat: -32.43535345, longitude: -59.245663}
 jug.meta = {starship_id: 0, client_id: 0};
 
 jug.on("connect", function(){ log("Connected") });
