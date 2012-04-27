@@ -1,9 +1,19 @@
 %h2 Greetings Traveler!
 
 %textarea{:id => "log", :readonly => "readonly"}
-.button{:id => "btnInit"} Find my location
-.button{:id => "btnNewEvent"} New Event
-.button{:id => "btnNewQuery"} New Query
+%table{:width => 300}
+  %tr
+    %td
+      .button{:id => "btnNewQuery", :width => 143} Sensor Sweep
+    %td
+      .button{:id => "btnNewEvent", :width => 143} Fire!
+%table
+  %tr
+    %td
+      %canvas{:id => "sensors", :width => 150}
+    %td
+      %canvas{:id => "weapons", :width => 150}
+
 
 %script{:src => "./js/utilities.js"}
 %script{:src => "./js/objects.js"}

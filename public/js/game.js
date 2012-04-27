@@ -54,7 +54,12 @@ log("Subscribing to global");
 
 jug.subscribe("global", function(data){
   r = processData(data);
-  log("Got a " + r.getName());
+  //log("Got a " + r.getName());
+  if (r.getName() == "Query") {
+    log("We've been scanned...");
+  } else {
+    log("We are being fired upon!");
+  }
 });
 
 log("Subscribing to zones");
@@ -68,7 +73,7 @@ log("Subscribing to clients/" + client_id);
 
 jug.subscribe("clients/" + client_id, function(data){
   r = processData(data);
-  log("Got a " + r.getName());
+  //log("Got a " + r.getName());
 });
 
 var zone_id = 1;
@@ -96,7 +101,8 @@ sendNewEvent = function(e) {
   $.post('/events/new', e, function(data){
     // should only be ServerMessage, maybe some robustness is in order
     r = processData(data)
-    log("Server Says: " + r.message);
+    //log("Server Says: " + r.message);
+    log("Fired upon starship!")
     e.event_id = r.callback_id;
     //store in an events_emitted table
     db.transaction(function (tx) {
@@ -110,7 +116,8 @@ sendNewQuery = function(q) {
   $.post('/query', q, function(data){
       // should only be ServerMessage, maybe some robustness is in order
       r = processData(data)
-      log("Server Says: " + r.message);
+      //log("Server Says: " + r.message);
+      log("Performing Sensor Sweep...")
       q.query_id = r.callback_id;
 
       //store in a unanswered_queries table
@@ -137,3 +144,70 @@ jQuery(window).ready(function(){
     q = sendNewQuery(q);
   });
 }); 
+
+//drawing code
+var canvas = document.getElementById('weapons');
+if (canvas.getContext){  
+  var ctx = canvas.getContext('2d');  
+  ctx.strokeStyle = '#fff'    
+  ctx.strokeRect(0,0,50,50);
+  ctx.strokeRect(50,0,50,50);
+  ctx.strokeRect(100,0,50,50); 
+  ctx.strokeRect(0,50,50,50); 
+  ctx.strokeRect(50,50,50,50);
+  ctx.strokeRect(100,50,50,50);
+  ctx.strokeRect(0,100,50,50); 
+  ctx.strokeRect(50,100,50,50);
+  ctx.strokeRect(100,100,50,50);
+  if (client_id == 1) {      
+    ctx.fillStyle = '#f00'
+    ctx.fillRect(0,0,50,50);
+  } else {
+    ctx.fillStyle = '#00f'
+    ctx.fillRect(100,100,50,50);
+  }
+} 
+
+//drawing code
+var canvas = document.getElementById('sensors');
+if (canvas.getContext){  
+  var ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#fff' 
+  ctx.beginPath(); 
+  ctx.arc(75,75,50,0,Math.PI*2,true); // Outer circle   
+  ctx.stroke();
+
+  ctx.beginPath(); 
+  ctx.arc(75,75,20,0,Math.PI*2,true); // Outer circle   
+  ctx.stroke();
+
+  ctx.beginPath(); 
+  ctx.arc(75,75,15,0,Math.PI*2,true); // Outer circle   
+  ctx.stroke();
+
+  ctx.beginPath(); 
+  ctx.arc(75,75,70,0,Math.PI*2,true); // Outer circle   
+  ctx.stroke();
+
+  ctx.beginPath(); 
+  ctx.moveTo(75,5);
+  ctx.lineTo(75,145); // Outer circle   
+  ctx.stroke();
+
+  ctx.beginPath(); 
+  ctx.moveTo(5,75);
+  ctx.lineTo(145,75); // Outer circle   
+  ctx.stroke();
+
+  if (client_id == 1) {
+    ctx.fillStyle = '#f00'
+    ctx.fillRect(60,60,5,5)
+  } else {
+    ctx.fillStyle = '#00f'
+    ctx.fillRect(85,85,5,5)
+  }
+} 
+
+
+
+
