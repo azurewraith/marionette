@@ -32,7 +32,7 @@ post '/events/new' do
   # determine what neighborhood location is in, publish to that neighborhood
   zone = "global"
 
-  Juggernaut.publish(zone, e.to_json)
+  Juggernaut.publish(zone, e.to_json, :except => request.env["HTTP_X_SESSION_ID"])
   m = ServerMessage.new(event_id, "Event #{event_id} was published to zone #{zone}")
   m.to_json
 end
@@ -54,7 +54,7 @@ post '/query' do
   # determine neighborhoods where range intersects from location
   zones = ["global"]
 
-  Juggernaut.publish(zones, q.to_json)
+  Juggernaut.publish(zones, q.to_json, :except => request.env["HTTP_X_SESSION_ID"])
   m = ServerMessage.new(query_id, "We asked #{zones} about #{object_type}s")
   m.to_json
 end
